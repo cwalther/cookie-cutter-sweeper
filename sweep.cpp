@@ -283,7 +283,26 @@ FloatMatrix distanceField(const PixelMatrix& pixels, int maxRadius) {
 						int dy2 = (((i & 2) - ((i<<1) & 2)) >> 1); // 0, -1, 1, 0
 						p2 = pixels.get(ix + dx2, iy + dy2);
 						if ((unsigned short)(p2 & 0x8000) == sign) {
-							float dc = (32767.5f - p)/(p2 - p);
+							// Grid edge crosses the shape edge. Two cases to compute the intersection point:
+							// - If one end of the grid edge is totally white or black, assume that this is a shape edge near perpendicular to the grid line and properly antialiased by area coverage, where the grid line goes through black pixels, then at most one gray pixel, then white pixels. In that case we can reconstruct the intersection point more accurately than by taking the 0.5-isoline of the bilinear interpolation. The latter is an inferior approximation and would lead to visible aliasing (rippled surface) in the end product.
+							// - Else: a near-diagonal edge, a near-parallel edge to the grid line where accuracy of the intersection point makes little difference, no single straight edge at all, or improperly antialiased (too blurry) - fall back to taking the 0.5-isoline of the bilinear interpolation.
+							// The two formulas happen to coincide along the lines u - v = +-0.5, so those are convenient boundaries for an overall continuous formula.
+							// From a purely visual comparison, in fact it seems like this combined formula for the most part of the parameter space precisely matches the exact solution for a straight edge of any slope, but I haven't done all the math yet.
+							float dc;
+							float u = (float)p2/65535.0f;
+							float v = (float)p/65535.0f;
+							if (u - v <= -0.5f) {
+								// by area coverage for u = 0 or v = 1
+								dc = -0.5f + u + v;
+							}
+							else if (u - v >= 0.5f) {
+								// by area coverage for u = 1 or v = 0
+								dc = 1.5f - u - v;
+							}
+							else {
+								// 0.5-isoline of bilinear interpolation (just linear interpolation here since we're on a grid edge)
+								dc = (0.5f - v)/(u - v);
+							}
 							float dx = o->dx + dx2*dc;
 							float dy = o->dy + dy2*dc;
 							dc = sqrtf(dx*dx + dy*dy);
