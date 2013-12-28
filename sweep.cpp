@@ -359,10 +359,12 @@ void writeStlTriangle(const Vertex& v1, const Vertex& v2, const Vertex& v3, FILE
 
 int main(int argc, char **argv) {
 	if (argc < 4) {
-		fprintf(stderr, "Usage: %s <crosssection.png> <shape.png> <output.stl>\n"
+		fprintf(stderr, "Usage: %s <crosssection.png> <shape.png> <output.stl>\n\n"
 			"Sweep (extrude) a cross-section shape along the edge of a shape to make a solid.\n"
 			"Input: black = inside, white or transparent = outside, antialiasing recommended.\n"
-			"Left half of cross section goes inside, right half outside.\n", argv[0]);
+			"Left half of cross section goes inside, right half outside.\n\n"
+			"Copyright (c) 2013 Christian Walther <cwalther%cgmx.ch>\n"
+			"https://github.com/cwalther/cookie-cutter-sweeper\n", argv[0], '@');
 		return 2;
 	}
 	try {
