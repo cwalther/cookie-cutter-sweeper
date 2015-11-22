@@ -140,7 +140,12 @@ PixelMatrix readPng(const char *filename) {
 	png_bytep *rows = NULL;
 	static const png_color_16 white = {0xFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
 
-	fp = fopen(filename, "rb");
+	if (strcmp(filename, "-") == 0) {
+		fp = stdin;
+	}
+	else {
+		fp = fopen(filename, "rb");
+	}
 	if (fp == NULL) {
 		std::ostringstream msg;
 		msg << "cannot open file " << filename << ": " << strerror(errno);
@@ -149,21 +154,21 @@ PixelMatrix readPng(const char *filename) {
 
 	png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (png == NULL) {
-		fclose(fp);
+		if (fp != stdin) fclose(fp);
 		throw std::runtime_error("cannot create PNG read structure");
 	}
 
 	pnginfo = png_create_info_struct(png);
 	if (pnginfo == NULL) {
 		png_destroy_read_struct(&png, NULL, NULL);
-		fclose(fp);
+		if (fp != stdin) fclose(fp);
 		throw std::runtime_error("cannot create PNG info structure");
 	}
 
 	if (setjmp(png_jmpbuf(png))) {
 		if (rows) png_free(png, rows);
 		png_destroy_read_struct(&png, &pnginfo, NULL);
-		fclose(fp);
+		if (fp != stdin) fclose(fp);
 		// libpng already printed its error message
 		throw std::runtime_error("PNG reading error");
 	}
@@ -195,7 +200,7 @@ PixelMatrix readPng(const char *filename) {
 	rowbytes = png_get_rowbytes(png, pnginfo);
 	if (rowbytes != 2*w) {
 		png_destroy_read_struct(&png, &pnginfo, NULL);
-		fclose(fp);
+		if (fp != stdin) fclose(fp);
 		throw std::runtime_error("unexpected pixel format");
 	}
 	rows = (png_bytep *)png_malloc(png, h*sizeof(png_bytep));
@@ -210,7 +215,7 @@ PixelMatrix readPng(const char *filename) {
 
 	png_free(png, rows);
 	png_destroy_read_struct(&png, &pnginfo, NULL);
-	fclose(fp);
+	if (fp != stdin) fclose(fp);
 
 	return pix;
 }
@@ -466,7 +471,13 @@ int main(int argc, char **argv) {
 		}
 
 		// now we have a mesh in a typical list-of-vertex-coordinates + list-of-faces-by-vertex-indices form, save it in STL format, which only stores individual triangles
-		FILE* of = fopen(argv[3], "wb");
+		FILE* of;
+		if (strcmp(argv[3], "-") == 0) {
+			of = stdout;
+		}
+		else {
+			of = fopen(argv[3], "wb");
+		}
 		if (of == NULL) {
 			fprintf(stderr, "cannot open file %s: %s\n", argv[3], strerror(errno));
 			return 1;
@@ -482,7 +493,9 @@ int main(int argc, char **argv) {
 			writeStlTriangle(vertices[it->index[0]], vertices[it->index[1]], vertices[it->index[2]], of);
 			writeStlTriangle(vertices[it->index[0]], vertices[it->index[2]], vertices[it->index[3]], of);
 		}
-		fclose(of);
+		if (of != stdout) {
+			fclose(of);
+		}
 	}
 	catch (const std::exception& e) {
 		fprintf(stderr, "%s\n", e.what());
