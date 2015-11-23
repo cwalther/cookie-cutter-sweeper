@@ -383,8 +383,10 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Usage: %s <crosssection.png> <shape.png> <output.stl>\n\n"
 			"Sweep (extrude) a cross-section shape along the edge of a shape to make a solid.\n"
 			"Input: black = inside, white or transparent = outside, antialiasing recommended.\n"
-			"Left half of cross section goes inside, right half outside.\n\n"
-			"Copyright (c) 2013 Christian Walther <cwalther%cgmx.ch>\n"
+			"Left half of cross section goes inside, right half outside.\n"
+			"Output is scaled according to resolution of cross-section image.\n\n"
+			"Version 1.1\n"
+			"Copyright (c) 2013-2015 Christian Walther <cwalther%cgmx.ch>\n"
 			"https://github.com/cwalther/cookie-cutter-sweeper\n", argv[0], '@');
 		return 2;
 	}
