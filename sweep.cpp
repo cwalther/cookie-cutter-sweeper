@@ -56,6 +56,7 @@ template <typename T, typename Outside> class Matrix {
 private:
 	struct Content {
 		int width, height;
+		float scale; // cells per millimeter
 		int refcount;
 		T data[0];
 	} *content;
@@ -65,6 +66,7 @@ public:
 	{
 		content->width = width;
 		content->height = height;
+		content->scale = 1.0f;
 		content->refcount = 1;
 	}
 	Matrix(const Matrix& other)
@@ -82,6 +84,12 @@ public:
 	}
 	int getHeight() const {
 		return content->height;
+	}
+	float setScale(float scale) {
+		content->scale = scale;
+	}
+	float getScale() const {
+		return content->scale;
 	}
 	T *getPointer() const {
 		return content->data;
@@ -133,6 +141,7 @@ PixelMatrix readPng(const char *filename) {
 	png_structp png;
 	png_infop pnginfo;
 	png_uint_32 w, h;
+	png_uint_32 resolution;
 	int bitdepth, colortype;
 	int i;
 	FILE *fp;
@@ -214,6 +223,12 @@ PixelMatrix readPng(const char *filename) {
 	png_read_end(png, NULL);
 
 	png_free(png, rows);
+	
+	resolution = png_get_pixels_per_meter(png, pnginfo);
+	if (resolution != 0) {
+		pix.setScale(resolution/1000.0f);
+	}
+	
 	png_destroy_read_struct(&png, &pnginfo, NULL);
 	if (fp != stdin) fclose(fp);
 
@@ -264,6 +279,7 @@ FloatMatrix distanceField(const PixelMatrix& pixels, int maxRadius) {
 
 	// now scan the image
 	FloatMatrix field(pixels.getWidth() + 2*maxRadius, pixels.getHeight() + 2*maxRadius);
+	field.setScale(pixels.getScale());
 	o = offsets;
 	x = -1;
 	for (y = 0; y < field.getHeight(); y++) {
@@ -465,9 +481,10 @@ int main(int argc, char **argv) {
 			it->normalize();
 			// - invert in y and z directions to convert from upside-down image coordinate system
 			// - shift by (1, 1, 1) to ensure all coordinates are positive as required by STL spec
-			it->xsum += 1.0f;
-			it->ysum = shape.getHeight() - it->ysum + 1.0f;
-			it->zsum = section.getHeight() - it->zsum + 1.0f;
+			// - scale by the resolution read from the section image, if any
+			it->xsum = (it->xsum + 1.0f)/section.getScale();
+			it->ysum = (shape.getHeight() - it->ysum + 1.0f)/section.getScale();
+			it->zsum = (section.getHeight() - it->zsum + 1.0f)/section.getScale();
 		}
 
 		// now we have a mesh in a typical list-of-vertex-coordinates + list-of-faces-by-vertex-indices form, save it in STL format, which only stores individual triangles
