@@ -379,21 +379,34 @@ void writeStlTriangle(const Vertex& v1, const Vertex& v2, const Vertex& v3, FILE
 }
 
 int main(int argc, char **argv) {
-	if (argc < 4) {
-		fprintf(stderr, "Usage: %s <crosssection.png> <shape.png> <output.stl>\n\n"
+	const char* filenames[3] = {NULL, NULL, NULL};
+	bool flipX = false;
+	for (int i = 1, j = 0; i < argc; i++) {
+		if (strcmp(argv[i], "--flip-x") == 0) {
+			flipX = !flipX;
+		}
+		else {
+			if (j < 3) filenames[j++] = argv[i];
+		}
+	}
+
+	if (filenames[2] == NULL) {
+		fprintf(stderr, "Usage: %s [--flip-x] <crosssection.png> <shape.png> <output.stl>\n\n"
 			"Sweep (extrude) a cross-section shape along the edge of a shape to make a solid.\n"
 			"Input: black = inside, white or transparent = outside, antialiasing recommended.\n"
 			"Left half of cross section goes inside, right half outside.\n"
-			"Output is scaled according to resolution of cross-section image.\n\n"
-			"Version 1.1\n"
+			"Output is scaled according to resolution of cross-section image.\n"
+			"--flip-x: Mirror output in x direction.\n\n"
+			"Version 1.2\n"
 			"Copyright (c) 2013-2015 Christian Walther <cwalther%cgmx.ch>\n"
 			"https://github.com/cwalther/cookie-cutter-sweeper\n", argv[0], '@');
 		return 2;
 	}
+
 	try {
 		// compute the 2D distance fields of section and shape
-		FloatMatrix section = distanceField(readPng(argv[1]), 2);
-		FloatMatrix shape = distanceField(readPng(argv[2]), (section.getWidth() + 1)/2);
+		FloatMatrix section = distanceField(readPng(filenames[0]), 2);
+		FloatMatrix shape = distanceField(readPng(filenames[1]), (section.getWidth() + 1)/2);
 
 		// initialization for working in z-slices, keeping only the last two slices in memory
 		FloatMatrix slice1(shape.getWidth(), shape.getHeight());
@@ -460,7 +473,7 @@ int main(int argc, char **argv) {
 								v.count++;
 								face.index[j] = vi - 1;
 							}
-							if (q >= 0) {
+							if ((q >= 0) != flipX) {
 								// outwards-pointing edge, reverse face orientation
 								unsigned int t = face.index[1];
 								face.index[1] = face.index[3];
@@ -482,8 +495,10 @@ int main(int argc, char **argv) {
 			// finish averaging
 			it->normalize();
 			// - invert in y and z directions to convert from upside-down image coordinate system
+			// - invert in x direction if requested
 			// - shift by (1, 1, 1) to ensure all coordinates are positive as required by STL spec
 			// - scale by the resolution read from the section image, if any
+			if (flipX) it->xsum = shape.getWidth() - it->xsum;
 			it->xsum = (it->xsum + 1.0f)/section.getScale();
 			it->ysum = (shape.getHeight() - it->ysum + 1.0f)/section.getScale();
 			it->zsum = (section.getHeight() - it->zsum + 1.0f)/section.getScale();
@@ -491,14 +506,14 @@ int main(int argc, char **argv) {
 
 		// now we have a mesh in a typical list-of-vertex-coordinates + list-of-faces-by-vertex-indices form, save it in STL format, which only stores individual triangles
 		FILE* of;
-		if (strcmp(argv[3], "-") == 0) {
+		if (strcmp(filenames[2], "-") == 0) {
 			of = stdout;
 		}
 		else {
-			of = fopen(argv[3], "wb");
+			of = fopen(filenames[2], "wb");
 		}
 		if (of == NULL) {
-			fprintf(stderr, "cannot open file %s: %s\n", argv[3], strerror(errno));
+			fprintf(stderr, "cannot open file %s: %s\n", filenames[2], strerror(errno));
 			return 1;
 		}
 		for (int i = 0; i < 80; i++) fputc(0, of);
