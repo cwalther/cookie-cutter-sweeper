@@ -1,14 +1,18 @@
 Installing the Inkscape extension
 
-Place the file cookie-cutter-sweeper.inx and the folder cookie-cutter-sweeper in your Inkscape extensions folder, which can be found at
+Place the file cookie-cutter-sweeper.inx and the folder cookie-cutter-sweeper in your Inkscape extensions folder
+
+On Mac OS X and Linux the extensions folder is at:
 
   ~/.config/inkscape/extensions
 
-on Mac OS X and Linux (on Mac OS X, use "Go > Go to Folder" in the Finder and paste this) and at
+(on Mac OS X, use "Go > Go to Folder" in the Finder and paste the "hidden" path)
+
+On Windows it can be found at:
 
   %APPDATA%\inkscape\extensions
 
-on Windows (paste this into the address line of an Explorer window).
+(paste the path into the address line of an Explorer window).
 
 After restarting Inkscape, the extension appears under "Extensions > Export > 3D-Printable Cookie Cutter".
 
