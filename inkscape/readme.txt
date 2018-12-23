@@ -6,13 +6,13 @@ On Mac OS X and Linux the extensions folder is at:
 
   ~/.config/inkscape/extensions
 
-(on Mac OS X, use "Go > Go to Folder" in the Finder and paste the "hidden" path)
+(on Mac OS X, use "Go > Go to Folder" in the Finder and paste this path to reveal the hidden folder)
 
 On Windows it can be found at:
 
   %APPDATA%\inkscape\extensions
 
-(paste the path into the address line of an Explorer window).
+(paste this path into the address line of an Explorer window).
 
 After restarting Inkscape, the extension appears under "Extensions > Export > 3D-Printable Cookie Cutter".
 
