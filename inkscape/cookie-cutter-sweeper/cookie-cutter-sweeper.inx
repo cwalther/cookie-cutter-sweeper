@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
-	<_name>3D-Printable Cookie Cutter</_name>
+	<name>3D-Printable Cookie Cutter</name>
 	<id>ch.kolleegium.filter.cookiecutter</id>
 	<dependency type="executable" location="extensions">cookie-cutter-sweeper/export.py</dependency>
-	<param name="outputfile" type="string" _gui-text="Output STL File">~/cookie.stl</param>
+	<param name="outputfile" type="path" mode="file_new" filetypes="stl" gui-text="Output STL File">~/cookie.stl</param>
 	<effect needs-live-preview="false">
 		<object-type>all</object-type>
 		<effects-menu>
-			<submenu _name="Export"/>
+			<submenu name="Export"/>
 		</effects-menu>
 	</effect>
 	<script>
-		<command reldir="extensions" interpreter="python">cookie-cutter-sweeper/export.py</command>
+		<command location="inx" interpreter="python">export.py</command>
 	</script>
 </inkscape-extension>

@@ -49,19 +49,22 @@ if __name__ == '__main__':
 	options, arguments = optionparser.parse_args()
 	
 	tempdir = tempfile.mkdtemp()
-	process = subprocess.Popen(['inkscape', '--export-png=' + os.path.join(tempdir, 'cookie.png'), '--export-area-drawing', '--export-dpi=254', '--export-background=#000000', '--export-background-opacity=0', arguments[-1]], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	process = subprocess.Popen(['inkscape', '--export-type=png', '--export-filename=' + os.path.join(tempdir, 'cookie.png'), '--export-area-drawing', '--export-dpi=254', '--export-background=#000000', '--export-background-opacity=0', arguments[-1]], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 	output = process.communicate()[0]
 	if process.returncode != 0:
-		sys.stderr.write('Calling inkscape failed:\n')
-		sys.stderr.write(output)
+		# Python 2+3 compatibility
+		binstderr = sys.stderr.buffer if hasattr(sys.stderr, 'buffer') else sys.stderr
+		binstderr.write(b'Calling inkscape failed:\n')
+		binstderr.write(output)
 		shutil.rmtree(tempdir, ignore_errors=True)
 		sys.exit(process.returncode)
 	
 	process = subprocess.Popen([os.path.join(os.getcwd(), bindir, 'sweep'), '--flip-x', os.path.join(os.getcwd(), 'section.png'), os.path.join(tempdir, 'cookie.png'), os.path.expanduser(options.outputfile)], stderr=subprocess.PIPE)
 	output = process.communicate()[1]
 	if process.returncode != 0:
-		sys.stderr.write('Calling sweep failed:\n')
-		sys.stderr.write(output)
+		binstderr = sys.stderr.buffer if hasattr(sys.stderr, 'buffer') else sys.stderr
+		binstderr.write(b'Calling sweep failed:\n')
+		binstderr.write(output)
 		shutil.rmtree(tempdir, ignore_errors=True)
 		sys.exit(process.returncode)
 	
