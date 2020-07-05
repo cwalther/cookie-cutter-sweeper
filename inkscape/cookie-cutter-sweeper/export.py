@@ -58,6 +58,10 @@ if __name__ == '__main__':
 		binstderr.write(output)
 		shutil.rmtree(tempdir, ignore_errors=True)
 		sys.exit(process.returncode)
+	if not os.path.exists(os.path.join(tempdir, 'cookie.png')):
+		sys.stderr.write('Cannot export an empty drawing. Add some black shapes.')
+		shutil.rmtree(tempdir, ignore_errors=True)
+		sys.exit(1)
 	
 	process = subprocess.Popen([os.path.join(os.getcwd(), bindir, 'sweep'), '--flip-x', os.path.join(os.getcwd(), 'section.png'), os.path.join(tempdir, 'cookie.png'), os.path.expanduser(options.outputfile)], stderr=subprocess.PIPE)
 	output = process.communicate()[1]
