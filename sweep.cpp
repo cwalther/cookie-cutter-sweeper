@@ -49,8 +49,10 @@ int offsetCompare(const void *o1, const void *o2) {
 }
 
 // workarounds for the fact that a float can't be passed as a non-type template parameter
-struct OutsideShortFFFF { static const unsigned short value = 0xFFFF; };
-struct OutsideFloatMax { static const float value = FLT_MAX; };
+struct OutsideShortFFFF { static const unsigned short value; };
+const unsigned short OutsideShortFFFF::value = 0xFFFF;
+struct OutsideFloatMax { static const float value; };
+const float OutsideFloatMax::value = FLT_MAX;
 
 template <typename T, typename Outside> class Matrix {
 private:
@@ -85,7 +87,7 @@ public:
 	int getHeight() const {
 		return content->height;
 	}
-	float setScale(float scale) {
+	void setScale(float scale) {
 		content->scale = scale;
 	}
 	float getScale() const {
@@ -397,8 +399,8 @@ int main(int argc, char **argv) {
 			"Left half of cross section goes inside, right half outside.\n"
 			"Output is scaled according to resolution of cross-section image.\n"
 			"--flip-x: Mirror output in x direction.\n\n"
-			"Version 1.2\n"
-			"Copyright (c) 2013-2015 Christian Walther <cwalther%cgmx.ch>\n"
+			"Version 1.3\n"
+			"Copyright (c) 2013-2020 Christian Walther <cwalther%cgmx.ch>\n"
 			"https://github.com/cwalther/cookie-cutter-sweeper\n", argv[0], '@');
 		return 2;
 	}
@@ -453,7 +455,7 @@ int main(int argc, char **argv) {
 							// for all four cells surrounding the edge, in right-hand-rule order with respect to (dx, dy, dz), i.e. all four vertices of the face
 							for (int j = 0; j < 4; j++) {
 								int k = (j ^ (j >> 1));
-								k = ((k << 1+i) | (k << 4+i));
+								k = ((k << (1+i)) | (k << (4+i)));
 								int ex = ((k >> 3) & 1);
 								int ey = ((k >> 4) & 1);
 								int ez = ((k >> 5) & 1);
